@@ -219,13 +219,15 @@ function Home() {
     <main className="min-h-screen px-4 sm:px-8 py-6 max-w-7xl mx-auto pb-24 md:pb-6">
       {/* Top bar */}
       <header className="relative z-[100] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4 animate-fade-up">
-        <div className="flex items-center gap-2">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-sun grid place-items-center text-xl shadow-soft">
-            🐱
-          </div>
+        <div className="flex items-center gap-3">
+          <img
+            src="/icon.svg"
+            alt="Mochi"
+            className="h-12 w-12 rounded-2xl shadow-soft shrink-0 object-cover"
+          />
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Mochi Weather</h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <h1 className="text-2xl font-semibold font-brand leading-none tracking-wide">Mochi Weather</h1>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75 animate-ping" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
@@ -413,56 +415,103 @@ function Home() {
 
       {/* ── FORECAST ─────────────────────────── */}
       <div className={ms('forecast')}>
-      {/* Forecasts */}
-      <section className="mt-6 grid lg:grid-cols-2 gap-6">
-        <Card title="7-day forecast" icon="📅">
-          {weatherQ.isLoading && (
-            <p className="text-sm text-muted-foreground">Loading forecast...</p>
-          )}
-          {weatherQ.isError && (
-            <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-              Forecast could not be loaded.
-            </p>
-          )}
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-5 px-5 snap-x">
-            {weatherQ.data?.daily.time.map((d, i) => {
-              const info = describeCode(weatherQ.data!.daily.weather_code[i]);
-              return (
-                <div
-                  key={d}
-                  className="shrink-0 w-[4.5rem] text-center rounded-2xl p-2 hover:bg-secondary/60 transition-colors snap-center"
-                >
-                  <div className="text-[10px] font-semibold text-muted-foreground uppercase">
-                    {new Date(d).toLocaleDateString("en", { weekday: "short" })}
-                  </div>
-                  <div className="text-2xl my-1">{info.emoji}</div>
-                  <div className="text-sm font-bold">
-                    {Math.round(weatherQ.data!.daily.temperature_2m_max[i])}°
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {Math.round(weatherQ.data!.daily.temperature_2m_min[i])}°
-                  </div>
-                  <div className="text-[10px] mt-1 text-rain font-medium">
-                    💧{weatherQ.data!.daily.precipitation_probability_max[i] ?? 0}%
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
 
-        <Card title="Next 24 hours" icon="⏰">
-          {weatherQ.isLoading && (
-            <p className="text-sm text-muted-foreground">Loading hourly forecast...</p>
-          )}
-          {weatherQ.isError && (
-            <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
-              Hourly forecast could not be loaded.
-            </p>
-          )}
-          {weatherQ.data && <HourlyForecastChart weather={weatherQ.data} />}
-        </Card>
-      </section>
+        {/* Mobile: sub-tabs so 7-day and 24h each fill the screen without scrolling */}
+        <div className="md:hidden mt-4">
+          <Tabs defaultValue="week">
+            <TabsList className="w-full rounded-2xl glass p-1 h-auto">
+              <TabsTrigger value="week" className="flex-1 rounded-xl gap-1.5">
+                <CalendarDays className="h-4 w-4" /> 7 days
+              </TabsTrigger>
+              <TabsTrigger value="today" className="flex-1 rounded-xl gap-1.5">
+                ⏰ 24 hours
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="week" className="mt-3">
+              <Card title="7-day forecast" icon="📅">
+                {weatherQ.isLoading && <p className="text-sm text-muted-foreground">Loading forecast...</p>}
+                {weatherQ.isError && <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">Forecast could not be loaded.</p>}
+                {weatherQ.data && (
+                  <div className="divide-y divide-border -mx-5 px-5">
+                    {weatherQ.data.daily.time.map((d, i) => {
+                      const info = describeCode(weatherQ.data!.daily.weather_code[i]);
+                      return (
+                        <div key={d} className="flex items-center gap-3 py-3">
+                          <div className="w-9 text-sm font-semibold text-muted-foreground">
+                            {new Date(d).toLocaleDateString("en", { weekday: "short" })}
+                          </div>
+                          <div className="text-2xl w-8">{info.emoji}</div>
+                          <div className="flex-1 text-sm">
+                            <span className="font-bold">{Math.round(weatherQ.data!.daily.temperature_2m_max[i])}°</span>
+                            <span className="text-muted-foreground"> / {Math.round(weatherQ.data!.daily.temperature_2m_min[i])}°</span>
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate max-w-[100px]">{info.label}</div>
+                          <div className="text-xs text-rain font-medium ml-2">💧{weatherQ.data!.daily.precipitation_probability_max[i] ?? 0}%</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="today" className="mt-3">
+              <Card title="Next 24 hours" icon="⏰">
+                {weatherQ.isLoading && <p className="text-sm text-muted-foreground">Loading hourly forecast...</p>}
+                {weatherQ.isError && <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">Hourly forecast could not be loaded.</p>}
+                {weatherQ.data && (
+                  <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-2 scrollbar-none">
+                    {weatherQ.data.hourly.time.slice(0, 24).map((t, i) => {
+                      const info = describeCode(weatherQ.data!.hourly.weather_code[i]);
+                      const rain = weatherQ.data!.hourly.precipitation_probability[i] ?? 0;
+                      return (
+                        <div key={t} className={`shrink-0 w-16 text-center rounded-2xl py-3 px-1 ${rain >= 50 ? 'bg-rain/15' : 'bg-secondary/50'}`}>
+                          <div className="text-[10px] text-muted-foreground font-medium">
+                            {new Date(t).toLocaleTimeString("en", { hour: "numeric" })}
+                          </div>
+                          <div className="text-xl my-1">{info.emoji}</div>
+                          <div className="text-sm font-bold">{Math.round(weatherQ.data!.hourly.temperature_2m[i])}°</div>
+                          <div className="text-[10px] text-rain font-medium">{rain}%</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Desktop: both cards side by side */}
+        <section className="hidden md:grid lg:grid-cols-2 gap-6 mt-6">
+          <Card title="7-day forecast" icon="📅">
+            {weatherQ.isLoading && <p className="text-sm text-muted-foreground">Loading forecast...</p>}
+            {weatherQ.isError && <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">Forecast could not be loaded.</p>}
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {weatherQ.data?.daily.time.map((d, i) => {
+                const info = describeCode(weatherQ.data!.daily.weather_code[i]);
+                return (
+                  <div key={d} className="shrink-0 w-[4.5rem] text-center rounded-2xl p-2 hover:bg-secondary/60 transition-colors">
+                    <div className="text-[10px] font-semibold text-muted-foreground uppercase">
+                      {new Date(d).toLocaleDateString("en", { weekday: "short" })}
+                    </div>
+                    <div className="text-2xl my-1">{info.emoji}</div>
+                    <div className="text-sm font-bold">{Math.round(weatherQ.data!.daily.temperature_2m_max[i])}°</div>
+                    <div className="text-xs text-muted-foreground">{Math.round(weatherQ.data!.daily.temperature_2m_min[i])}°</div>
+                    <div className="text-[10px] mt-1 text-rain font-medium">💧{weatherQ.data!.daily.precipitation_probability_max[i] ?? 0}%</div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+          <Card title="Next 24 hours" icon="⏰">
+            {weatherQ.isLoading && <p className="text-sm text-muted-foreground">Loading hourly forecast...</p>}
+            {weatherQ.isError && <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">Hourly forecast could not be loaded.</p>}
+            {weatherQ.data && <HourlyForecastChart weather={weatherQ.data} />}
+          </Card>
+        </section>
 
       </div>{/* end FORECAST */}
 
@@ -754,7 +803,7 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-gradient-card rounded-3xl p-5 shadow-soft border border-white/60 animate-fade-up">
+    <div className="bg-gradient-card rounded-3xl p-5 shadow-soft border border-white/60 animate-fade-up overflow-hidden">
       <h3 className="font-bold text-base mb-3 flex items-center gap-2">
         <span className="text-xl">{icon}</span> {title}
       </h3>

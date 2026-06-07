@@ -418,7 +418,7 @@ function PanelCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-gradient-card rounded-3xl p-5 shadow-soft border border-white/60 animate-fade-up">
+    <div className="bg-gradient-card rounded-3xl p-5 shadow-soft border border-white/60 animate-fade-up overflow-hidden">
       <h3 className="font-bold text-base mb-3 flex items-center gap-2">
         <span className="text-xl">{icon}</span> {title}
       </h3>
