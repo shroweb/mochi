@@ -75,6 +75,8 @@ import {
   Sunrise,
   Sunset,
   Mountain,
+  CalendarDays,
+  Sparkles,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -86,6 +88,7 @@ function Home() {
   const [showSugg, setShowSugg] = useState(false);
   const [searchError, setSearchError] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
+  const [mobileSection, setMobileSection] = useState<'now' | 'forecast' | 'alerts' | 'mochi'>('now');
   const [customization, setCustomization] = useMascotCustomization();
   const savedPlaces = useSavedPlaces(null);
   const selectPlace = (nextPlace: GeoResult) => {
@@ -209,8 +212,11 @@ function Home() {
           ? "bg-gradient-to-br from-rain/40 to-storm/30 text-white"
           : "bg-gradient-sun";
 
+  const ms = (s: typeof mobileSection) => s === mobileSection ? '' : 'hidden md:block';
+
   return (
-    <main className="min-h-screen px-4 sm:px-8 py-6 max-w-7xl mx-auto">
+    <>
+    <main className="min-h-screen px-4 sm:px-8 py-6 max-w-7xl mx-auto pb-24 md:pb-6">
       {/* Top bar */}
       <header className="relative z-[100] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4 animate-fade-up">
         <div className="flex items-center gap-2">
@@ -254,7 +260,7 @@ function Home() {
             </div>
           )}
           {showSugg && suggestions.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 glass rounded-2xl shadow-pop overflow-hidden z-50">
+            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-2xl shadow-pop overflow-hidden z-[300]">
               {suggestions.map((s, i) => (
                 <button
                   key={`${s.latitude}-${s.longitude}-${i}`}
@@ -292,6 +298,8 @@ function Home() {
         isCurrentSaved={savedPlaces.isSaved(place)}
       />
 
+      {/* ── NOW ─────────────────────────────── */}
+      <div className={ms('now')}>
       {/* Hero current weather */}
       <section
         className={`relative mt-4 overflow-hidden rounded-[2rem] p-6 sm:p-10 ${heroGradient} shadow-pop animate-fade-up`}
@@ -401,7 +409,10 @@ function Home() {
       </div>
 
       <AdviceStrip items={adviceItems} updatedAt={weatherQ.dataUpdatedAt} />
+      </div>{/* end NOW */}
 
+      {/* ── FORECAST ─────────────────────────── */}
+      <div className={ms('forecast')}>
       {/* Forecasts */}
       <section className="mt-6 grid lg:grid-cols-2 gap-6">
         <Card title="7-day forecast" icon="📅">
@@ -453,6 +464,10 @@ function Home() {
         </Card>
       </section>
 
+      </div>{/* end FORECAST */}
+
+      {/* ── ALERTS ───────────────────────────── */}
+      <div className={ms('alerts')}>
       {/* Extreme weather tabs */}
       <section className="mt-6 animate-fade-up">
         <Tabs defaultValue="quakes" className="w-full">
@@ -604,7 +619,10 @@ function Home() {
           </TabsContent>
         </Tabs>
       </section>
+      </div>{/* end ALERTS */}
 
+      {/* ── MOCHI ────────────────────────────── */}
+      <div className={ms('mochi')}>
       <section className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="bg-gradient-card rounded-3xl p-6 shadow-soft border border-white/60">
           <h3 className="font-bold text-base mb-1 flex items-center gap-2">
@@ -674,7 +692,34 @@ function Home() {
         </a>
         . Auto-refreshes every couple of minutes. Made with 🐾 by Mochi.
       </footer>
+      </div>{/* end MOCHI */}
+
     </main>
+
+    {/* ── Mobile bottom nav ─────────────────── */}
+    <nav className="fixed bottom-0 left-0 right-0 z-[150] md:hidden bg-card/95 backdrop-blur-xl border-t border-border safe-area-bottom">
+      <div className="flex items-stretch h-16">
+        {([
+          { s: 'now',      icon: <Sun className="h-5 w-5" />,           label: 'Now' },
+          { s: 'forecast', icon: <CalendarDays className="h-5 w-5" />,  label: 'Forecast' },
+          { s: 'alerts',   icon: <AlertTriangle className="h-5 w-5" />, label: 'Alerts' },
+          { s: 'mochi',    icon: <Sparkles className="h-5 w-5" />,      label: 'Mochi' },
+        ] as const).map(({ s, icon, label }) => (
+          <button
+            key={s}
+            onClick={() => setMobileSection(s)}
+            className={`flex-1 flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors ${
+              mobileSection === s ? 'text-primary' : 'text-muted-foreground'
+            }`}
+          >
+            {icon}
+            {label}
+            {mobileSection === s && <span className="absolute bottom-0 h-0.5 w-8 rounded-full bg-primary" />}
+          </button>
+        ))}
+      </div>
+    </nav>
+    </>
   );
 }
 
