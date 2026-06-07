@@ -87,7 +87,14 @@ export const Route = createFileRoute("/")({ component: Home });
 function Home() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
-  const [place, setPlace] = useState<GeoResult | null>(null);
+  const [place, setPlace] = useState<GeoResult | null>(() => {
+    try {
+      const raw = localStorage.getItem("mochi-last-place");
+      return raw ? (JSON.parse(raw) as GeoResult) : null;
+    } catch {
+      return null;
+    }
+  });
   const [showSugg, setShowSugg] = useState(false);
   const [searchError, setSearchError] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
@@ -114,8 +121,15 @@ function Home() {
     );
   };
 
+  // Persist the selected place so it survives app close/reopen
   useEffect(() => {
-    if (navigator.geolocation) useMyLocation();
+    if (!place) return;
+    try { localStorage.setItem("mochi-last-place", JSON.stringify(place)); } catch { /* ignore */ }
+  }, [place]);
+
+  // Auto-detect location only on first ever launch (no saved place)
+  useEffect(() => {
+    if (!place && navigator.geolocation) useMyLocation();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
