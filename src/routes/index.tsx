@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useWeatherAudio } from "@/hooks/use-weather-audio";
 import { useQuery } from "@tanstack/react-query";
 import {
   geocode,
@@ -77,6 +78,8 @@ import {
   Mountain,
   CalendarDays,
   Sparkles,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 
 export const Route = createFileRoute("/")({ component: Home });
@@ -226,6 +229,8 @@ function Home() {
             ? "bg-gradient-to-br from-rain/40 to-storm/30 text-white"
             : "bg-gradient-sun";
 
+  const { on: soundOn, toggle: toggleSound } = useWeatherAudio(codeInfo?.severity, isDay);
+
   const ms = (s: typeof mobileSection) => s === mobileSection ? '' : 'hidden md:block';
 
   return (
@@ -344,7 +349,7 @@ function Home() {
                   Feels like {current ? Math.round(current.apparent_temperature) : "—"}°
                 </p>
               </div>
-              {current && <WeatherIcon code={current.weather_code} size={96} />}
+              {current && <WeatherIcon code={current.weather_code} size={96} isDay={isDay} />}
             </div>
 
             {current && (
@@ -400,6 +405,17 @@ function Home() {
             <Mascot message={mascotMsg} size="lg" mood={mood} fur={customization.fur} />
           </div>
         </div>
+
+        {/* Sound toggle — bottom-right of hero card */}
+        <button
+          onClick={toggleSound}
+          title={soundOn ? "Mute ambient sounds" : "Play ambient sounds"}
+          className="absolute bottom-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-full glass opacity-70 hover:opacity-100 transition-opacity"
+        >
+          {soundOn
+            ? <Volume2 className="h-4 w-4" />
+            : <VolumeX className="h-4 w-4" />}
+        </button>
       </section>
 
       <div className="md:hidden mt-4">
