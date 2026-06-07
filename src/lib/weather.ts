@@ -26,6 +26,25 @@ export async function geocode(query: string): Promise<GeoResult[]> {
   return data.results ?? [];
 }
 
+export async function reverseGeocode(lat: number, lon: number): Promise<GeoResult> {
+  try {
+    const data = await fetchJson<{
+      city?: string; locality?: string; principalSubdivision?: string;
+      countryName?: string; countryCode?: string;
+    }>(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`);
+    return {
+      name: data.city || data.locality || "My Location",
+      country: data.countryName || "",
+      country_code: data.countryCode || "",
+      admin1: data.principalSubdivision,
+      latitude: lat,
+      longitude: lon,
+    };
+  } catch {
+    return { name: "My Location", country: "", country_code: "", latitude: lat, longitude: lon };
+  }
+}
+
 export interface WeatherData {
   current: {
     temperature_2m: number;

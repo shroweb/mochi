@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   geocode,
+  reverseGeocode,
   getWeather,
   getEarthquakes,
   getAllRecentQuakes,
@@ -92,6 +93,7 @@ function Home() {
   const [place, setPlace] = useState<GeoResult>(DEFAULT_PLACE);
   const [showSugg, setShowSugg] = useState(false);
   const [searchError, setSearchError] = useState(false);
+  const [geoLoading, setGeoLoading] = useState(false);
   const [customization, setCustomization] = useMascotCustomization();
   const savedPlaces = useSavedPlaces(DEFAULT_PLACE);
   const selectPlace = (nextPlace: GeoResult) => {
@@ -99,6 +101,25 @@ function Home() {
     setQuery("");
     setShowSugg(false);
   };
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) return;
+    setGeoLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const result = await reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+        selectPlace(result);
+        setGeoLoading(false);
+      },
+      () => setGeoLoading(false),
+      { timeout: 8000 }
+    );
+  };
+
+  useEffect(() => {
+    if (navigator.geolocation) useMyLocation();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const id = setTimeout(async () => {
@@ -212,7 +233,7 @@ function Home() {
             </p>
           </div>
         </div>
-        <div className="relative z-50 w-full max-w-sm ml-4">
+        <div className="relative z-50 w-full sm:max-w-sm sm:ml-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search any city or country…"
@@ -220,8 +241,18 @@ function Home() {
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => suggestions.length && setShowSugg(true)}
             onBlur={() => setTimeout(() => setShowSugg(false), 180)}
-            className="pl-9 rounded-2xl glass border-white/60"
+            className="pl-9 pr-10 rounded-2xl glass border-white/60"
           />
+          <button
+            type="button"
+            onClick={useMyLocation}
+            title="Use my location"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+          >
+            {geoLoading
+              ? <span className="h-4 w-4 block rounded-full border-2 border-primary border-t-transparent animate-spin" />
+              : <MapPin className="h-4 w-4" />}
+          </button>
           {searchError && (
             <div className="absolute top-full left-0 right-0 mt-2 rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive shadow-soft">
               Search is unavailable right now.
@@ -316,8 +347,8 @@ function Home() {
             </div>
 
             {current && (
-              <div className="mt-6 space-y-2 max-w-lg">
-                <div className="grid grid-cols-4 gap-2">
+              <div className="mt-6 space-y-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <Stat
                     icon={<Wind className="h-4 w-4" />}
                     label="Wind"
@@ -387,13 +418,13 @@ function Home() {
               Forecast could not be loaded.
             </p>
           )}
-          <div className="grid grid-cols-2 sm:grid-cols-7 gap-2">
+          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
             {weatherQ.data?.daily.time.map((d, i) => {
               const info = describeCode(weatherQ.data!.daily.weather_code[i]);
               return (
                 <div
                   key={d}
-                  className="text-center rounded-2xl p-2 hover:bg-secondary/60 transition-colors"
+                  className="shrink-0 w-[4.5rem] text-center rounded-2xl p-2 hover:bg-secondary/60 transition-colors snap-center"
                 >
                   <div className="text-[10px] font-semibold text-muted-foreground uppercase">
                     {new Date(d).toLocaleDateString("en", { weekday: "short" })}
