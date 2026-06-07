@@ -21,7 +21,7 @@ import {
   type WeatherData,
 } from "@/lib/weather";
 import { Mascot } from "@/components/Mascot";
-import { WeatherIcon } from "@/components/WeatherIcon";
+import { FlippableWeatherIcon } from "@/components/FlippableWeatherIcon";
 import { MascotCustomizer, useMascotCustomization } from "@/components/MascotCustomizer";
 import { SavedPlaces } from "@/components/SavedPlaces";
 import { HourlyForecastChart } from "@/components/HourlyForecastChart";
@@ -349,7 +349,7 @@ function Home() {
                   Feels like {current ? Math.round(current.apparent_temperature) : "—"}°
                 </p>
               </div>
-              {current && <WeatherIcon code={current.weather_code} size={96} isDay={isDay} />}
+              {current && <FlippableWeatherIcon code={current.weather_code} size={96} isDay={isDay} />}
             </div>
 
             {current && (

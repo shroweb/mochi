@@ -144,6 +144,37 @@ export async function getAllRecentQuakes(): Promise<Earthquake[]> {
   }));
 }
 
+// ── Moon phase ──────────────────────────────────────────────────────────────
+// Calculates the current lunar phase from a known reference new moon.
+// No API needed — purely date math.
+export function getMoonPhase(date = new Date()): {
+  emoji: string;
+  name: string;
+  illumination: number; // 0-100 %
+} {
+  // Known new moon: 3 Sep 2024 01:55 UTC
+  const REF_NEW_MOON_MS = 1725328500000;
+  const CYCLE_MS = 29.530588853 * 86_400_000;
+
+  const phase =
+    (((date.getTime() - REF_NEW_MOON_MS) % CYCLE_MS) + CYCLE_MS) % CYCLE_MS / CYCLE_MS;
+
+  const illumination = Math.round(((1 - Math.cos(2 * Math.PI * phase)) / 2) * 100);
+
+  let emoji: string;
+  let name: string;
+  if      (phase < 0.025) { emoji = "🌑"; name = "New Moon"; }
+  else if (phase < 0.250) { emoji = "🌒"; name = "Waxing Crescent"; }
+  else if (phase < 0.275) { emoji = "🌓"; name = "First Quarter"; }
+  else if (phase < 0.500) { emoji = "🌔"; name = "Waxing Gibbous"; }
+  else if (phase < 0.525) { emoji = "🌕"; name = "Full Moon"; }
+  else if (phase < 0.750) { emoji = "🌖"; name = "Waning Gibbous"; }
+  else if (phase < 0.775) { emoji = "🌗"; name = "Last Quarter"; }
+  else                    { emoji = "🌘"; name = "Waning Crescent"; }
+
+  return { emoji, name, illumination };
+}
+
 type WeatherSeverity = "calm" | "mild" | "rain" | "storm" | "snow" | "extreme";
 
 // WMO weather code mapping
