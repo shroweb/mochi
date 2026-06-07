@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useWeatherAudio } from "@/hooks/use-weather-audio";
+import { useSwipe } from "@/hooks/use-swipe";
 import { useQuery } from "@tanstack/react-query";
 import {
   geocode,
@@ -244,12 +245,17 @@ function Home() {
             : "bg-gradient-sun";
 
   const { on: soundOn, toggle: toggleSound } = useWeatherAudio(codeInfo?.severity, isDay);
+  const swipeHandlers = useSwipe(mobileSection, setMobileSection);
 
   const ms = (s: typeof mobileSection) => s === mobileSection ? '' : 'hidden md:block';
 
   return (
     <>
-    <main className="min-h-screen px-4 sm:px-8 py-6 max-w-7xl mx-auto pb-24 md:pb-6">
+    <main
+      className="min-h-screen px-4 sm:px-8 py-6 max-w-7xl mx-auto pb-24 md:pb-6"
+      onTouchStart={swipeHandlers.onTouchStart}
+      onTouchEnd={swipeHandlers.onTouchEnd}
+    >
       {/* Top bar */}
       <header className="relative z-[100] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4 animate-fade-up">
         <div className="flex items-center gap-3">

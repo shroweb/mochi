@@ -1,3 +1,4 @@
+import { useState } from "react";
 import rainy from "@/assets/mascot-cat.png";
 import sunny from "@/assets/mascot-sunny.png";
 import storm from "@/assets/mascot-storm.png";
@@ -46,20 +47,83 @@ const MOOD_AURA: Record<MascotMood, string> = {
   calm: "", sunny: "sunny", rain: "rain", storm: "storm", snow: "snow", hot: "hot",
 };
 
+function playMeow() {
+  if (typeof window === "undefined") return;
+  try {
+    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const now = ctx.currentTime;
+
+    const osc = ctx.createOscillator();
+    osc.type = "triangle";
+
+    // Bandpass filter shapes the vowel character
+    const filt = ctx.createBiquadFilter();
+    filt.type = "bandpass";
+    filt.frequency.value = 880;
+    filt.Q.value = 2.8;
+
+    // Amplitude envelope
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.42, now + 0.03);
+    gain.gain.setValueAtTime(0.38, now + 0.13);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.40);
+
+    // "mee-ow" pitch contour: rise then fall
+    osc.frequency.setValueAtTime(430, now);
+    osc.frequency.linearRampToValueAtTime(670, now + 0.055);
+    osc.frequency.setValueAtTime(650, now + 0.11);
+    osc.frequency.exponentialRampToValueAtTime(195, now + 0.37);
+
+    // Slight vibrato
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 5.5;
+    const lfoG = ctx.createGain();
+    lfoG.gain.value = 11;
+    lfo.connect(lfoG);
+    lfoG.connect(osc.frequency);
+
+    osc.connect(filt);
+    filt.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now); lfo.start(now);
+    osc.stop(now + 0.44); lfo.stop(now + 0.44);
+
+    setTimeout(() => ctx.close().catch(() => {}), 600);
+  } catch { /* ignore — audio not available */ }
+}
+
 export function Mascot({
   message,
   mood = "calm",
   size = "md",
   fur = "classic",
 }: MascotProps) {
+  const [meowing, setMeowing] = useState(false);
   const dim = size === "lg" ? 180 : size === "sm" ? 72 : 120;
   const src = MAP[mood];
   const filter = FUR_PRESETS[fur].filter;
-  const animClass = MOOD_ANIM[mood];
+  const animClass = meowing ? "" : MOOD_ANIM[mood];
   const auraClass = MOOD_AURA[mood];
+
+  function handleClick() {
+    if (meowing) return;
+    setMeowing(true);
+    playMeow();
+    setTimeout(() => setMeowing(false), 480);
+  }
+
   return (
     <div className="flex items-end gap-4">
-      <div className="relative shrink-0" style={{ width: dim, height: dim }}>
+      <div
+        className="relative shrink-0 cursor-pointer select-none"
+        style={{ width: dim, height: dim }}
+        onClick={handleClick}
+        title="Tap Mochi!"
+      >
         {auraClass && <div key={`aura-${mood}`} className={`mascot-aura on ${auraClass}`} />}
         {mood === "snow" && (
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -75,7 +139,7 @@ export function Mascot({
           alt={`Mochi the weather cat, mood: ${mood}`}
           width={dim}
           height={dim}
-          className={`drop-shadow-xl ${animClass}`}
+          className={`drop-shadow-xl ${meowing ? "[animation:meow_0.45s_ease-in-out]" : animClass}`}
           style={{ width: dim, height: dim, filter }}
         />
       </div>
