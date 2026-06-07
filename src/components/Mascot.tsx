@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import rainy from "@/assets/mascot-cat.png";
 import sunny from "@/assets/mascot-sunny.png";
 import storm from "@/assets/mascot-storm.png";
@@ -102,19 +102,40 @@ export function Mascot({
   size = "md",
   fur = "classic",
 }: MascotProps) {
-  const [meowing, setMeowing] = useState(false);
+  const [looping, setLooping] = useState(false);
+  const loopingRef = useRef(false);
+  const tidRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function scheduleNext() {
+    if (!loopingRef.current) return;
+    playMeow();
+    tidRef.current = setTimeout(scheduleNext, 680);
+  }
+
+  function handleClick() {
+    if (loopingRef.current) {
+      // tap again → stop
+      loopingRef.current = false;
+      if (tidRef.current) clearTimeout(tidRef.current);
+      setLooping(false);
+    } else {
+      // first tap → start looping
+      loopingRef.current = true;
+      setLooping(true);
+      scheduleNext();
+    }
+  }
+
+  useEffect(() => () => {
+    loopingRef.current = false;
+    if (tidRef.current) clearTimeout(tidRef.current);
+  }, []);
+
   const dim = size === "lg" ? 180 : size === "sm" ? 72 : 120;
   const src = MAP[mood];
   const filter = FUR_PRESETS[fur].filter;
-  const animClass = meowing ? "" : MOOD_ANIM[mood];
+  const animClass = looping ? "" : MOOD_ANIM[mood];
   const auraClass = MOOD_AURA[mood];
-
-  function handleClick() {
-    if (meowing) return;
-    setMeowing(true);
-    playMeow();
-    setTimeout(() => setMeowing(false), 480);
-  }
 
   return (
     <div className="flex items-end gap-4">
@@ -139,7 +160,7 @@ export function Mascot({
           alt={`Mochi the weather cat, mood: ${mood}`}
           width={dim}
           height={dim}
-          className={`drop-shadow-xl ${meowing ? "[animation:meow_0.45s_ease-in-out]" : animClass}`}
+          className={`drop-shadow-xl ${looping ? "[animation:meow_0.45s_ease-in-out_infinite]" : animClass}`}
           style={{ width: dim, height: dim, filter }}
         />
       </div>
