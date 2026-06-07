@@ -58,7 +58,7 @@ function CatThumb({ mood }: { mood: string }) {
     />
   );
 }
-import { RainOverlay } from "@/components/RainOverlay";
+import { WeatherEffects } from "@/components/WeatherEffects";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -199,8 +199,6 @@ function Home() {
   }, [mood]);
   const current = weatherQ.data?.current;
   const codeInfo = current ? describeCode(current.weather_code) : null;
-  const isStormy = codeInfo && ["storm", "extreme", "rain"].includes(codeInfo.severity);
-  const isSnowy = codeInfo?.severity === "snow";
 
   const heroGradient = !codeInfo
     ? "bg-gradient-sky"
@@ -306,25 +304,7 @@ function Home() {
       <section
         className={`relative mt-4 overflow-hidden rounded-[2rem] p-6 sm:p-10 ${heroGradient} shadow-pop animate-fade-up`}
       >
-        {isStormy && <RainOverlay />}
-        {isSnowy && (
-          <div className="pointer-events-none absolute inset-0">
-            {Array.from({ length: 18 }).map((_, i) => (
-              <span
-                key={i}
-                className="absolute text-white/70 animate-rain"
-                style={{
-                  left: `${(i * 5.5) % 100}%`,
-                  top: "-10px",
-                  animationDelay: `${i * 0.2}s`,
-                  animationDuration: `${2 + (i % 3)}s`,
-                }}
-              >
-                ❄
-              </span>
-            ))}
-          </div>
-        )}
+        <WeatherEffects severity={codeInfo?.severity} mood={mood} />
         <div className="relative grid md:grid-cols-[1fr_auto] gap-8 items-center">
           <div>
             <div className="flex items-center gap-2 text-sm font-medium opacity-90">
