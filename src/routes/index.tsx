@@ -199,16 +199,32 @@ function Home() {
   }, [mood]);
   const current = weatherQ.data?.current;
   const codeInfo = current ? describeCode(current.weather_code) : null;
+  const isDay = current ? current.is_day === 1 : true;
+
+  useEffect(() => {
+    document.body.setAttribute("data-time", isDay ? "day" : "night");
+    return () => document.body.removeAttribute("data-time");
+  }, [isDay]);
 
   const heroGradient = !codeInfo
     ? "bg-gradient-sky"
-    : codeInfo.severity === "storm" || codeInfo.severity === "extreme"
-      ? "bg-gradient-storm text-white"
-      : codeInfo.severity === "snow"
-        ? "bg-gradient-to-br from-snow to-rain/30"
+    : !isDay
+      // ── Night gradients ──────────────────────────────────────────────
+      ? codeInfo.severity === "storm" || codeInfo.severity === "extreme"
+        ? "bg-gradient-night-storm text-white"
         : codeInfo.severity === "rain"
-          ? "bg-gradient-to-br from-rain/40 to-storm/30 text-white"
-          : "bg-gradient-sun";
+          ? "bg-gradient-night-rain text-white"
+          : codeInfo.severity === "snow"
+            ? "bg-gradient-night-snow text-white"
+            : "bg-gradient-night text-white"          // calm or mild at night
+      // ── Day gradients ────────────────────────────────────────────────
+      : codeInfo.severity === "storm" || codeInfo.severity === "extreme"
+        ? "bg-gradient-storm text-white"
+        : codeInfo.severity === "snow"
+          ? "bg-gradient-to-br from-snow to-rain/30"
+          : codeInfo.severity === "rain"
+            ? "bg-gradient-to-br from-rain/40 to-storm/30 text-white"
+            : "bg-gradient-sun";
 
   const ms = (s: typeof mobileSection) => s === mobileSection ? '' : 'hidden md:block';
 
@@ -304,7 +320,7 @@ function Home() {
       <section
         className={`relative mt-4 overflow-hidden rounded-[2rem] p-6 sm:p-10 ${heroGradient} shadow-pop animate-fade-up`}
       >
-        <WeatherEffects severity={codeInfo?.severity} mood={mood} />
+        <WeatherEffects severity={codeInfo?.severity} mood={mood} isDay={isDay} />
         <div className="relative grid md:grid-cols-[1fr_auto] gap-8 items-center">
           <div>
             <div className="flex items-center gap-2 text-sm font-medium opacity-90">

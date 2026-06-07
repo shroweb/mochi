@@ -88,6 +88,13 @@
   --gradient-sun: linear-gradient(140deg, oklch(0.9 0.14 85), oklch(0.82 0.18 50));
   --gradient-card: linear-gradient(180deg, oklch(1 0 0), oklch(0.98 0.02 230));
 
+  /* Night sky gradients */
+  --gradient-night:       linear-gradient(160deg, oklch(0.14 0.07 270), oklch(0.12 0.04 255));
+  --gradient-night-mild:  linear-gradient(160deg, oklch(0.18 0.05 268), oklch(0.23 0.04 250));
+  --gradient-night-rain:  linear-gradient(160deg, oklch(0.18 0.06 245), oklch(0.23 0.05 232));
+  --gradient-night-snow:  linear-gradient(160deg, oklch(0.22 0.04 242), oklch(0.29 0.03 222));
+  --gradient-night-storm: linear-gradient(160deg, oklch(0.10 0.04 280), oklch(0.14 0.05 262));
+
   --shadow-soft: 0 10px 30px -12px oklch(0.5 0.15 250 / 0.25);
   --shadow-pop: 0 20px 50px -18px oklch(0.5 0.18 260 / 0.35);
 }
@@ -143,6 +150,29 @@
   body[data-weather-mood="hot"] {
     background: linear-gradient(160deg, oklch(0.86 0.14 48), oklch(0.92 0.11 75));
   }
+
+  /* Night overrides — combined selector wins over plain mood rules */
+  body[data-time="night"] {
+    background: linear-gradient(160deg, oklch(0.14 0.07 270), oklch(0.12 0.04 255));
+  }
+  body[data-weather-mood="sunny"][data-time="night"],
+  body[data-weather-mood="calm"][data-time="night"] {
+    background: linear-gradient(160deg, oklch(0.14 0.07 270), oklch(0.12 0.04 255));
+  }
+  body[data-weather-mood="rain"][data-time="night"] {
+    background: linear-gradient(160deg, oklch(0.17 0.06 248), oklch(0.21 0.05 234));
+  }
+  body[data-weather-mood="storm"][data-time="night"] {
+    background: linear-gradient(160deg, oklch(0.10 0.04 280), oklch(0.13 0.05 262));
+  }
+  body[data-weather-mood="snow"][data-time="night"] {
+    background: linear-gradient(160deg, oklch(0.20 0.04 242), oklch(0.26 0.03 224));
+  }
+  body[data-weather-mood="hot"][data-time="night"] {
+    /* Hot places cool down at night — warm dark violet */
+    background: linear-gradient(160deg, oklch(0.16 0.07 285), oklch(0.12 0.04 268));
+  }
+
   h1, h2, h3 { letter-spacing: -0.02em; }
 }
 
@@ -151,6 +181,11 @@
   .bg-gradient-storm { background: var(--gradient-storm); }
   .bg-gradient-sun { background: var(--gradient-sun); }
   .bg-gradient-card { background: var(--gradient-card); }
+  .bg-gradient-night       { background: var(--gradient-night); }
+  .bg-gradient-night-mild  { background: var(--gradient-night-mild); }
+  .bg-gradient-night-rain  { background: var(--gradient-night-rain); }
+  .bg-gradient-night-snow  { background: var(--gradient-night-snow); }
+  .bg-gradient-night-storm { background: var(--gradient-night-storm); }
   .shadow-soft { box-shadow: var(--shadow-soft); }
   .shadow-pop { box-shadow: var(--shadow-pop); }
 
@@ -260,4 +295,10 @@
   89%  { opacity: 0;   }
   91%  { opacity: 0.5; }
   92%  { opacity: 0;   }
+}
+@keyframes shootingStar {
+  0%   { transform: translateX(0)    rotate(-25deg); opacity: 0; width: 0; }
+  5%   { opacity: 1; width: 60px; }
+  15%  { transform: translateX(140px) rotate(-25deg); opacity: 0; width: 0; }
+  100% { transform: translateX(140px) rotate(-25deg); opacity: 0; }
 }

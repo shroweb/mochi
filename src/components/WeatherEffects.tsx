@@ -1,8 +1,8 @@
 /**
  * Animated weather background effects layered inside the hero card.
  * Each condition gets its own visual treatment:
- *   calm   → slow-spinning golden sun rays + glow
- *   mild   → drifting cloud shapes
+ *   calm   → day: slow-spinning sun rays + glow  / night: stars + moon
+ *   mild   → day: white drifting clouds           / night: dark cloud blobs
  *   rain   → diagonal rain streaks
  *   snow   → falling snowflake characters
  *   storm  → heavy rain + lightning flashes
@@ -12,13 +12,15 @@
 export function WeatherEffects({
   severity,
   mood,
+  isDay = true,
 }: {
   severity?: string;
   mood?: string;
+  isDay?: boolean;
 }) {
   if (!severity) return null;
-  if (severity === "calm") return <SunRays />;
-  if (severity === "mild") return <DriftingClouds />;
+  if (severity === "calm") return isDay ? <SunRays /> : <StarryNight />;
+  if (severity === "mild") return isDay ? <DriftingClouds /> : <DriftingClouds night />;
   if (severity === "rain") return <RainDrops />;
   if (severity === "snow") return <SnowFlakes />;
   if (severity === "storm") return <StormEffect />;
@@ -91,6 +93,74 @@ function SunRays() {
   );
 }
 
+// ─── Starry Night ─────────────────────────────────────────────────────────────
+
+function StarryNight() {
+  const stars = Array.from({ length: 42 }, (_, i) => ({
+    x: (i * 43 + 17) % 93,
+    y: (i * 31 + 11) % 82,
+    size: 1 + (i % 3) * 0.65,
+    opacity: 0.3 + (i % 6) * 0.1,
+    twinkle: i % 3 === 0,
+    dur: 1.8 + (i % 5) * 0.55,
+    delay: (i * 0.28) % 2.5,
+  }));
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
+      {/* Moon glow */}
+      <div
+        className="absolute top-5 right-7 h-14 w-14 rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(255,248,210,0.95) 28%, rgba(255,240,170,0.45) 58%, transparent 78%)",
+          boxShadow: "0 0 24px 10px rgba(255,238,150,0.18)",
+          animation: "pulseSoft 6s ease-in-out infinite",
+        }}
+      />
+      {/* Crescent shadow to make it look like a crescent moon */}
+      <div
+        className="absolute top-4 right-5 h-12 w-12 rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle at 60% 38%, rgba(18,20,50,0.75) 42%, transparent 58%)",
+        }}
+      />
+      {/* Stars */}
+      {stars.map((s, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full bg-white"
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: `${s.size}px`,
+            height: `${s.size}px`,
+            opacity: s.opacity,
+            animation: s.twinkle
+              ? `pulseSoft ${s.dur}s ease-in-out ${s.delay}s infinite`
+              : "none",
+          }}
+        />
+      ))}
+      {/* Occasional shooting star */}
+      <div
+        className="absolute"
+        style={{
+          top: "12%",
+          left: "20%",
+          width: "60px",
+          height: "1px",
+          background:
+            "linear-gradient(to right, transparent, rgba(255,255,255,0.8), transparent)",
+          transform: "rotate(-25deg)",
+          animation: "shootingStar 8s ease-in-out 3s infinite",
+        }}
+      />
+    </div>
+  );
+}
+
 // ─── Drifting Clouds ──────────────────────────────────────────────────────────
 
 const CLOUDS = [
@@ -99,7 +169,7 @@ const CLOUDS = [
   { delay: 18, dur: 22, top: "66%",  scale: 1.05, opacity: 0.12 },
 ];
 
-function DriftingClouds() {
+function DriftingClouds({ night = false }: { night?: boolean }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[2rem]">
       {CLOUDS.map((c, i) => (
@@ -108,7 +178,7 @@ function DriftingClouds() {
           className="absolute"
           style={{
             top: c.top,
-            opacity: c.opacity,
+            opacity: night ? c.opacity * 1.6 : c.opacity,
             animationName: "cloudDrift",
             animationTimingFunction: "linear",
             animationIterationCount: "infinite",
@@ -116,21 +186,22 @@ function DriftingClouds() {
             animationDelay: `${c.delay}s`,
           }}
         >
-          <CloudBlob scale={c.scale} />
+          <CloudBlob scale={c.scale} night={night} />
         </div>
       ))}
     </div>
   );
 }
 
-function CloudBlob({ scale = 1 }: { scale?: number }) {
+function CloudBlob({ scale = 1, night = false }: { scale?: number; night?: boolean }) {
   const s = (n: number) => n * scale;
+  const color = night ? "rgba(70,85,130,0.85)" : "white";
   return (
     <div style={{ position: "relative", width: s(130), height: s(54) }}>
-      <div style={{ position:"absolute", background:"white", borderRadius:"50%", width:s(78), height:s(50), bottom:0, left:0 }} />
-      <div style={{ position:"absolute", background:"white", borderRadius:"50%", width:s(62), height:s(46), bottom:0, right:0 }} />
-      <div style={{ position:"absolute", background:"white", borderRadius:"50%", width:s(56), height:s(56), bottom:s(8), left:s(22) }} />
-      <div style={{ position:"absolute", background:"white", borderRadius:"50%", width:s(48), height:s(48), bottom:s(4), left:s(50) }} />
+      <div style={{ position:"absolute", background:color, borderRadius:"50%", width:s(78), height:s(50), bottom:0, left:0 }} />
+      <div style={{ position:"absolute", background:color, borderRadius:"50%", width:s(62), height:s(46), bottom:0, right:0 }} />
+      <div style={{ position:"absolute", background:color, borderRadius:"50%", width:s(56), height:s(56), bottom:s(8), left:s(22) }} />
+      <div style={{ position:"absolute", background:color, borderRadius:"50%", width:s(48), height:s(48), bottom:s(4), left:s(50) }} />
     </div>
   );
 }
