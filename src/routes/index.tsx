@@ -245,8 +245,8 @@ function Home() {
             className="h-12 w-12 rounded-2xl shadow-soft shrink-0 object-cover"
           />
           <div>
-            <h1 className="text-2xl font-semibold font-brand leading-none tracking-wide">Mochi Weather</h1>
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5 mt-0.5">
+            <h1 className={`text-2xl font-semibold font-brand leading-none tracking-wide ${!isDay ? 'text-white' : ''}`}>Mochi Weather</h1>
+            <p className={`text-xs flex items-center gap-1.5 mt-0.5 ${!isDay ? 'text-white/60' : 'text-muted-foreground'}`}>
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75 animate-ping" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
