@@ -79,23 +79,15 @@ import {
 
 export const Route = createFileRoute("/")({ component: Home });
 
-const DEFAULT_PLACE: GeoResult = {
-  name: "Tokyo",
-  country: "Japan",
-  country_code: "JP",
-  latitude: 35.6895,
-  longitude: 139.6917,
-};
-
 function Home() {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<GeoResult[]>([]);
-  const [place, setPlace] = useState<GeoResult>(DEFAULT_PLACE);
+  const [place, setPlace] = useState<GeoResult | null>(null);
   const [showSugg, setShowSugg] = useState(false);
   const [searchError, setSearchError] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [customization, setCustomization] = useMascotCustomization();
-  const savedPlaces = useSavedPlaces(DEFAULT_PLACE);
+  const savedPlaces = useSavedPlaces(null);
   const selectPlace = (nextPlace: GeoResult) => {
     setPlace(nextPlace);
     setQuery("");
@@ -138,8 +130,9 @@ function Home() {
   }, [query]);
 
   const weatherQ = useQuery({
-    queryKey: ["weather", place.latitude, place.longitude],
-    queryFn: () => getWeather(place.latitude, place.longitude),
+    queryKey: ["weather", place?.latitude, place?.longitude],
+    queryFn: () => getWeather(place!.latitude, place!.longitude),
+    enabled: !!place,
     staleTime: 60 * 1000,
     refetchInterval: 2 * 60 * 1000,
     refetchOnWindowFocus: true,
@@ -159,14 +152,16 @@ function Home() {
   });
 
   const airQ = useQuery({
-    queryKey: ["air-quality", place.latitude, place.longitude],
-    queryFn: () => getAirQuality(place.latitude, place.longitude),
+    queryKey: ["air-quality", place?.latitude, place?.longitude],
+    queryFn: () => getAirQuality(place!.latitude, place!.longitude),
+    enabled: !!place,
     staleTime: 5 * 60 * 1000,
     refetchInterval: 10 * 60 * 1000,
   });
   const marineQ = useQuery({
-    queryKey: ["marine", place.latitude, place.longitude],
-    queryFn: () => getMarine(place.latitude, place.longitude),
+    queryKey: ["marine", place?.latitude, place?.longitude],
+    queryFn: () => getMarine(place!.latitude, place!.longitude),
+    enabled: !!place,
     staleTime: 10 * 60 * 1000,
     refetchInterval: 15 * 60 * 1000,
   });
@@ -217,7 +212,7 @@ function Home() {
   return (
     <main className="min-h-screen px-4 sm:px-8 py-6 max-w-7xl mx-auto">
       {/* Top bar */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4 animate-fade-up">
+      <header className="relative z-[100] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4 animate-fade-up">
         <div className="flex items-center gap-2">
           <div className="h-10 w-10 rounded-2xl bg-gradient-sun grid place-items-center text-xl shadow-soft">
             🐱
@@ -233,7 +228,7 @@ function Home() {
             </p>
           </div>
         </div>
-        <div className="relative z-50 w-full sm:max-w-sm sm:ml-4">
+        <div className="relative z-[200] w-full sm:max-w-sm sm:ml-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search any city or country…"
@@ -324,7 +319,7 @@ function Home() {
           <div>
             <div className="flex items-center gap-2 text-sm font-medium opacity-90">
               <MapPin className="h-4 w-4" />
-              {place.name}, {place.country}
+              {place ? `${place.name}, ${place.country}` : "Detecting location…"}
             </div>
             {weatherQ.isError && (
               <div className="mt-4 rounded-2xl bg-white/70 px-4 py-3 text-sm font-semibold text-destructive shadow-soft">
@@ -418,7 +413,7 @@ function Home() {
               Forecast could not be loaded.
             </p>
           )}
-          <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-5 px-5 snap-x">
             {weatherQ.data?.daily.time.map((d, i) => {
               const info = describeCode(weatherQ.data!.daily.weather_code[i]);
               return (
@@ -461,7 +456,7 @@ function Home() {
       {/* Extreme weather tabs */}
       <section className="mt-6 animate-fade-up">
         <Tabs defaultValue="quakes" className="w-full">
-          <TabsList className="rounded-2xl glass p-1 h-auto flex-wrap">
+          <TabsList className="rounded-2xl glass p-1 h-auto overflow-x-auto flex-nowrap w-full justify-start">
             <TabsTrigger value="quakes" className="rounded-xl gap-2">
               <Activity className="h-4 w-4" /> Earthquakes
             </TabsTrigger>
@@ -588,7 +583,7 @@ function Home() {
               data={marineQ.data ?? null}
               isLoading={marineQ.isLoading}
               isError={marineQ.isError}
-              place={place.name}
+              place={place?.name ?? "—"}
             />
           </TabsContent>
 

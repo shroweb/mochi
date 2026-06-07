@@ -9,8 +9,8 @@ export function placeKey(place: GeoResult) {
   return `${place.latitude.toFixed(4)}:${place.longitude.toFixed(4)}`;
 }
 
-export function useSavedPlaces(initialPlace: GeoResult) {
-  const [places, setPlaces] = useState<GeoResult[]>([initialPlace]);
+export function useSavedPlaces(initialPlace: GeoResult | null) {
+  const [places, setPlaces] = useState<GeoResult[]>(initialPlace ? [initialPlace] : []);
 
   useEffect(() => {
     try {

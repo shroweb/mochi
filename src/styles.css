@@ -114,17 +114,12 @@
 
 @layer base {
   * { border-color: var(--color-border); }
-  html {
-    overflow-x: hidden;
-  }
-
   body {
     background: linear-gradient(160deg, oklch(0.88 0.07 230), oklch(0.94 0.05 80));
     transition: background 1.4s ease;
     color: var(--color-foreground);
     min-height: 100vh;
     font-feature-settings: "ss01", "cv11";
-    overflow-x: hidden;
   }
 
   body[data-weather-mood="sunny"] {

@@ -23,7 +23,8 @@ export function HourlyForecastChart({ weather }: { weather: WeatherData }) {
 
   return (
     <div className="space-y-3">
-      <ChartContainer config={chartConfig} className="h-64 w-full">
+      <div className="overflow-hidden w-full rounded-xl">
+      <ChartContainer config={chartConfig} className="h-52 w-full [&>div]:!aspect-auto">
         <AreaChart data={data} margin={{ left: 0, right: 8, top: 12, bottom: 0 }}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
           <XAxis dataKey="time" tickLine={false} axisLine={false} minTickGap={18} />
@@ -56,6 +57,7 @@ export function HourlyForecastChart({ weather }: { weather: WeatherData }) {
           />
         </AreaChart>
       </ChartContainer>
+      </div>
       <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
         <span className="rounded-full bg-primary/10 px-2 py-1 font-medium text-primary">
           Temperature °C
