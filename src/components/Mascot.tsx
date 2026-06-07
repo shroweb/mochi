@@ -18,13 +18,37 @@ const MAP: Record<MascotMood, string> = {
 };
 
 export const FUR_PRESETS: Record<FurColor, { label: string; swatch: string; filter: string }> = {
-  classic:   { label: "Classic",   swatch: "#e8d3b0", filter: "none" },
-  ginger:    { label: "Ginger",    swatch: "#e8853a", filter: "hue-rotate(-15deg) saturate(1.6) brightness(1.02)" },
-  calico:    { label: "Calico",    swatch: "#c97a4a", filter: "hue-rotate(10deg) saturate(1.3) contrast(1.05)" },
-  midnight:  { label: "Midnight",  swatch: "#2c2a3a", filter: "hue-rotate(200deg) saturate(0.6) brightness(0.55) contrast(1.1)" },
-  mint:      { label: "Mint",      swatch: "#7fd6b6", filter: "hue-rotate(110deg) saturate(0.9) brightness(1.05)" },
-  lavender:  { label: "Lavender",  swatch: "#c4a7e7", filter: "hue-rotate(230deg) saturate(0.8) brightness(1.08)" },
-  rose:      { label: "Rose",      swatch: "#f0a8b8", filter: "hue-rotate(310deg) saturate(1.1) brightness(1.05)" },
+  classic: { label: "Classic", swatch: "#e8d3b0", filter: "none" },
+  ginger: {
+    label: "Ginger",
+    swatch: "#e8853a",
+    filter: "hue-rotate(-15deg) saturate(1.6) brightness(1.02)",
+  },
+  calico: {
+    label: "Calico",
+    swatch: "#c97a4a",
+    filter: "hue-rotate(10deg) saturate(1.3) contrast(1.05)",
+  },
+  midnight: {
+    label: "Midnight",
+    swatch: "#2c2a3a",
+    filter: "hue-rotate(200deg) saturate(0.6) brightness(0.55) contrast(1.1)",
+  },
+  mint: {
+    label: "Mint",
+    swatch: "#7fd6b6",
+    filter: "hue-rotate(110deg) saturate(0.9) brightness(1.05)",
+  },
+  lavender: {
+    label: "Lavender",
+    swatch: "#c4a7e7",
+    filter: "hue-rotate(230deg) saturate(0.8) brightness(1.08)",
+  },
+  rose: {
+    label: "Rose",
+    swatch: "#f0a8b8",
+    filter: "hue-rotate(310deg) saturate(1.1) brightness(1.05)",
+  },
 };
 
 interface MascotProps {
@@ -35,22 +59,29 @@ interface MascotProps {
 }
 
 const MOOD_ANIM: Record<MascotMood, string> = {
-  calm:  "mascot-calm",
+  calm: "mascot-calm",
   sunny: "mascot-sunny",
-  rain:  "mascot-wave",
+  rain: "mascot-wave",
   storm: "mascot-bounce",
-  snow:  "mascot-shiver",
-  hot:   "mascot-pant",
+  snow: "mascot-shiver",
+  hot: "mascot-pant",
 };
 
 const MOOD_AURA: Record<MascotMood, string> = {
-  calm: "", sunny: "sunny", rain: "rain", storm: "storm", snow: "snow", hot: "hot",
+  calm: "",
+  sunny: "sunny",
+  rain: "rain",
+  storm: "storm",
+  snow: "snow",
+  hot: "hot",
 };
 
 function playMeow() {
   if (typeof window === "undefined") return;
   try {
-    const AC = window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AC =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (!AC) return;
     const ctx = new AC();
     const now = ctx.currentTime;
@@ -69,7 +100,7 @@ function playMeow() {
     gain.gain.setValueAtTime(0, now);
     gain.gain.linearRampToValueAtTime(0.42, now + 0.03);
     gain.gain.setValueAtTime(0.38, now + 0.13);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.40);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
     // "mee-ow" pitch contour: rise then fall
     osc.frequency.setValueAtTime(430, now);
@@ -89,52 +120,44 @@ function playMeow() {
     filt.connect(gain);
     gain.connect(ctx.destination);
 
-    osc.start(now); lfo.start(now);
-    osc.stop(now + 0.44); lfo.stop(now + 0.44);
+    osc.start(now);
+    lfo.start(now);
+    osc.stop(now + 0.44);
+    lfo.stop(now + 0.44);
 
     setTimeout(() => ctx.close().catch(() => {}), 600);
-  } catch { /* ignore — audio not available */ }
+  } catch {
+    /* ignore — audio not available */
+  }
 }
 
-export function Mascot({
-  message,
-  mood = "calm",
-  size = "md",
-  fur = "classic",
-}: MascotProps) {
-  const [looping, setLooping] = useState(false);
-  const loopingRef = useRef(false);
+export function Mascot({ message, mood = "calm", size = "md", fur = "classic" }: MascotProps) {
+  const [meowing, setMeowing] = useState(false);
+  const lastMeowAtRef = useRef(0);
   const tidRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function scheduleNext() {
-    if (!loopingRef.current) return;
-    playMeow();
-    tidRef.current = setTimeout(scheduleNext, 680);
-  }
-
   function handleClick() {
-    if (loopingRef.current) {
-      // tap again → stop
-      loopingRef.current = false;
-      if (tidRef.current) clearTimeout(tidRef.current);
-      setLooping(false);
-    } else {
-      // first tap → start looping
-      loopingRef.current = true;
-      setLooping(true);
-      scheduleNext();
-    }
+    const now = Date.now();
+    if (now - lastMeowAtRef.current < 10_000) return;
+
+    lastMeowAtRef.current = now;
+    playMeow();
+    setMeowing(true);
+    if (tidRef.current) clearTimeout(tidRef.current);
+    tidRef.current = setTimeout(() => setMeowing(false), 550);
   }
 
-  useEffect(() => () => {
-    loopingRef.current = false;
-    if (tidRef.current) clearTimeout(tidRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (tidRef.current) clearTimeout(tidRef.current);
+    },
+    [],
+  );
 
   const dim = size === "lg" ? 180 : size === "sm" ? 72 : 120;
   const src = MAP[mood];
   const filter = FUR_PRESETS[fur].filter;
-  const animClass = looping ? "" : MOOD_ANIM[mood];
+  const animClass = meowing ? "" : MOOD_ANIM[mood];
   const auraClass = MOOD_AURA[mood];
 
   return (
@@ -149,8 +172,18 @@ export function Mascot({
         {mood === "snow" && (
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             {Array.from({ length: 6 }).map((_, i) => (
-              <span key={i} className="absolute text-white/80 animate-rain text-xs"
-                style={{ left: `${10 + i * 14}%`, top: "-6px", animationDelay: `${i * 0.25}s`, animationDuration: `${1.8 + (i % 3) * 0.4}s` }}>❄</span>
+              <span
+                key={i}
+                className="absolute text-white/80 animate-rain text-xs"
+                style={{
+                  left: `${10 + i * 14}%`,
+                  top: "-6px",
+                  animationDelay: `${i * 0.25}s`,
+                  animationDuration: `${1.8 + (i % 3) * 0.4}s`,
+                }}
+              >
+                ❄
+              </span>
             ))}
           </div>
         )}
@@ -160,7 +193,7 @@ export function Mascot({
           alt={`Mochi the weather cat, mood: ${mood}`}
           width={dim}
           height={dim}
-          className={`drop-shadow-xl ${looping ? "[animation:meow_0.45s_ease-in-out_infinite]" : animClass}`}
+          className={`drop-shadow-xl ${meowing ? "[animation:meow_0.45s_ease-in-out_1]" : animClass}`}
           style={{ width: dim, height: dim, filter }}
         />
       </div>
