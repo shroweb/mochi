@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useWeatherAudio } from "@/hooks/use-weather-audio";
 import { useSwipe } from "@/hooks/use-swipe";
 import { useQuery } from "@tanstack/react-query";
@@ -217,7 +217,54 @@ function Home() {
   }, [mood]);
   const current = weatherQ.data?.current;
   const codeInfo = current ? describeCode(current.weather_code) : null;
-  const isDay = current ? current.is_day === 1 : true;
+
+  // Tick every 30 s so local time and day/night stay accurate without a page refresh
+  const [nowMs, setNowMs] = useState(Date.now);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  useEffect(() => {
+    tickRef.current = setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => { if (tickRef.current) clearInterval(tickRef.current); };
+  }, []);
+
+  // Compute isDay from the REAL local clock vs today's sunrise/sunset.
+  // This is more reliable than the cached API is_day field which can be
+  // stale if React Query returns cached daytime data at night.
+  const isDay = useMemo(() => {
+    const d = weatherQ.data;
+    if (!d) return true;
+    const off = d.utc_offset_seconds;
+    const sr  = d.daily.sunrise[0];
+    const ss  = d.daily.sunset[0];
+    if (off == null || !sr || !ss) return d.current.is_day === 1;
+    const localDate  = new Date(nowMs + off * 1000);
+    const localMin   = localDate.getUTCHours() * 60 + localDate.getUTCMinutes();
+    const toMin = (s: string) => {
+      const [h, m] = s.split("T")[1].split(":").map(Number);
+      return h * 60 + m;
+    };
+    return localMin >= toMin(sr) && localMin <= toMin(ss);
+  }, [nowMs, weatherQ.data]);
+
+  // Local time string for the selected location
+  const localTime = useMemo(() => {
+    const d = weatherQ.data;
+    if (!d) return null;
+    try {
+      if (d.timezone) {
+        return new Date(nowMs).toLocaleTimeString("en", {
+          timeZone: d.timezone,
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        });
+      }
+      // Fallback: manual UTC offset math
+      const ld = new Date(nowMs + d.utc_offset_seconds * 1000);
+      const h = ld.getUTCHours();
+      const m = String(ld.getUTCMinutes()).padStart(2, "0");
+      return `${h % 12 || 12}:${m} ${h >= 12 ? "PM" : "AM"}`;
+    } catch { return null; }
+  }, [nowMs, weatherQ.data]);
 
   useEffect(() => {
     document.body.setAttribute("data-time", isDay ? "day" : "night");
@@ -348,9 +395,15 @@ function Home() {
         <WeatherEffects severity={codeInfo?.severity} mood={mood} isDay={isDay} />
         <div className="relative grid md:grid-cols-[1fr_auto] gap-8 items-center">
           <div>
-            <div className="flex items-center gap-2 text-sm font-medium opacity-90">
-              <MapPin className="h-4 w-4" />
-              {place ? `${place.name}, ${place.country}` : "Detecting location…"}
+            <div className="flex items-center gap-2 text-sm font-medium opacity-90 flex-wrap">
+              <MapPin className="h-4 w-4 shrink-0" />
+              <span>{place ? `${place.name}, ${place.country}` : "Detecting location…"}</span>
+              {localTime && (
+                <>
+                  <span className="opacity-40">·</span>
+                  <span className="text-xs opacity-80">{isDay ? "☀️" : "🌙"} {localTime}</span>
+                </>
+              )}
             </div>
             {weatherQ.isError && (
               <div className="mt-4 rounded-2xl bg-white/70 px-4 py-3 text-sm font-semibold text-destructive shadow-soft">

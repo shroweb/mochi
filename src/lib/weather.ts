@@ -46,6 +46,9 @@ export async function reverseGeocode(lat: number, lon: number): Promise<GeoResul
 }
 
 export interface WeatherData {
+  timezone: string;            // e.g. "Australia/Perth"
+  timezone_abbreviation: string; // e.g. "AWST"
+  utc_offset_seconds: number;  // e.g. 28800
   current: {
     temperature_2m: number;
     apparent_temperature: number;
