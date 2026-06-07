@@ -115,10 +115,27 @@
 @layer base {
   * { border-color: var(--color-border); }
   body {
-    background: var(--gradient-sky);
+    background: linear-gradient(160deg, oklch(0.88 0.07 230), oklch(0.94 0.05 80));
+    transition: background 1.4s ease;
     color: var(--color-foreground);
     min-height: 100vh;
     font-feature-settings: "ss01", "cv11";
+  }
+
+  body[data-weather-mood="sunny"] {
+    background: linear-gradient(160deg, oklch(0.90 0.14 85), oklch(0.95 0.08 65));
+  }
+  body[data-weather-mood="rain"] {
+    background: linear-gradient(160deg, oklch(0.74 0.07 230), oklch(0.82 0.05 220));
+  }
+  body[data-weather-mood="storm"] {
+    background: linear-gradient(160deg, oklch(0.38 0.10 280), oklch(0.50 0.12 255));
+  }
+  body[data-weather-mood="snow"] {
+    background: linear-gradient(160deg, oklch(0.92 0.03 220), oklch(0.97 0.01 205));
+  }
+  body[data-weather-mood="hot"] {
+    background: linear-gradient(160deg, oklch(0.86 0.14 48), oklch(0.92 0.11 75));
   }
   h1, h2, h3 { letter-spacing: -0.02em; }
 }
