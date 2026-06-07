@@ -25,11 +25,16 @@ export function useWeatherAudio(severity?: string, isDay = true) {
 
     if (!on || !severity) return;
 
+    // Guard: AudioContext is unavailable in SSR or some restricted mobile contexts
+    if (typeof window === "undefined" || !("AudioContext" in window || "webkitAudioContext" in window)) return;
+
+    try {
+    const AC = (window.AudioContext ?? (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext);
     if (!ctxRef.current || ctxRef.current.state === "closed") {
-      ctxRef.current = new AudioContext();
+      ctxRef.current = new AC();
     }
     const ctx = ctxRef.current;
-    if (ctx.state === "suspended") ctx.resume();
+    if (ctx.state === "suspended") ctx.resume().catch(() => { /* ignore */ });
 
     // Master gain — fade in over 1.5 s
     const master = ctx.createGain();
@@ -245,6 +250,9 @@ export function useWeatherAudio(severity?: string, isDay = true) {
       cleanupRef.current?.();
       cleanupRef.current = null;
     };
+    } catch {
+      // Audio setup failed silently — sounds just won't play
+    }
   }, [on, severity, isDay]);
 
   // Close AudioContext on unmount
