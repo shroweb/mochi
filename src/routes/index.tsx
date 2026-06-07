@@ -173,6 +173,11 @@ function Home() {
 
   const mascotMsg = useMemo(() => mochiSays(weatherQ.data ?? null), [weatherQ.data]);
   const mood = useMemo(() => pickMood(weatherQ.data ?? null), [weatherQ.data]);
+
+  useEffect(() => {
+    document.body.setAttribute("data-weather-mood", mood);
+    return () => document.body.removeAttribute("data-weather-mood");
+  }, [mood]);
   const current = weatherQ.data?.current;
   const codeInfo = current ? describeCode(current.weather_code) : null;
   const isStormy = codeInfo && ["storm", "extreme", "rain"].includes(codeInfo.severity);
@@ -426,52 +431,28 @@ function Home() {
       <section className="mt-6 animate-fade-up">
         <Tabs defaultValue="quakes" className="w-full">
           <TabsList className="rounded-2xl glass p-1 h-auto flex-wrap">
-            <TabsTrigger
-              value="quakes"
-              className="rounded-xl gap-2 data-[state=active]:bg-gradient-storm data-[state=active]:text-white"
-            >
+            <TabsTrigger value="quakes" className="rounded-xl gap-2">
               <Activity className="h-4 w-4" /> Earthquakes
             </TabsTrigger>
-            <TabsTrigger
-              value="tsunami"
-              className="rounded-xl gap-2 data-[state=active]:bg-destructive data-[state=active]:text-white"
-            >
+            <TabsTrigger value="tsunami" className="rounded-xl gap-2">
               <AlertTriangle className="h-4 w-4" /> Tsunami
             </TabsTrigger>
-            <TabsTrigger
-              value="storms"
-              className="rounded-xl gap-2 data-[state=active]:bg-gradient-storm data-[state=active]:text-white"
-            >
+            <TabsTrigger value="storms" className="rounded-xl gap-2">
               ⛈️ Storms & Hurricanes
             </TabsTrigger>
-            <TabsTrigger
-              value="tides"
-              className="rounded-xl gap-2 data-[state=active]:bg-rain data-[state=active]:text-white"
-            >
+            <TabsTrigger value="tides" className="rounded-xl gap-2">
               <Waves className="h-4 w-4" /> Tides
             </TabsTrigger>
-            <TabsTrigger
-              value="air"
-              className="rounded-xl gap-2 data-[state=active]:bg-green-500 data-[state=active]:text-white"
-            >
+            <TabsTrigger value="air" className="rounded-xl gap-2">
               <Wind className="h-4 w-4" /> Air Quality
             </TabsTrigger>
-            <TabsTrigger
-              value="marine"
-              className="rounded-xl gap-2 data-[state=active]:bg-rain data-[state=active]:text-white"
-            >
+            <TabsTrigger value="marine" className="rounded-xl gap-2">
               🌊 Marine
             </TabsTrigger>
-            <TabsTrigger
-              value="space"
-              className="rounded-xl gap-2 data-[state=active]:bg-gradient-storm data-[state=active]:text-white"
-            >
+            <TabsTrigger value="space" className="rounded-xl gap-2">
               ✨ Space Weather
             </TabsTrigger>
-            <TabsTrigger
-              value="volcano"
-              className="rounded-xl gap-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
-            >
+            <TabsTrigger value="volcano" className="rounded-xl gap-2">
               <Mountain className="h-4 w-4" /> Volcanoes
             </TabsTrigger>
           </TabsList>
