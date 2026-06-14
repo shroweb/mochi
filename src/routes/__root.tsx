@@ -57,27 +57,63 @@ function ErrorComponent({ error }: { error: Error; reset: () => void }) {
   );
 }
 
+const OG_IMAGE = "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/39554f64-757c-4766-a650-ad260c2e4953/id-preview-abc0f5c5--e6a07911-bd59-4f7e-aeb0-2a6a027154d6.lovable.app-1779639552532.png";
+const SITE_TITLE = "Mochi Weather — Cute Weather App with Live Forecasts & Alerts";
+const SITE_DESCRIPTION = "Live weather forecasts, storms, tornadoes, hurricanes, earthquakes, tsunamis & tides for every country — narrated by Mochi the weather cat. Free PWA, works offline.";
+
+const JSON_LD = JSON.stringify({
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Mochi Weather",
+  "description": SITE_DESCRIPTION,
+  "applicationCategory": "WeatherApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "inLanguage": "en",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "featureList": [
+    "Live weather conditions",
+    "7-day forecast",
+    "Hourly forecast",
+    "Severe weather alerts",
+    "Earthquake & tsunami warnings",
+    "Moon phase display",
+    "Ambient weather sounds",
+    "Works offline as a PWA",
+  ],
+  "image": OG_IMAGE,
+});
+
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
+      { name: "robots", content: "index, follow" },
       { name: "theme-color", content: "#4a9fd4" },
+      { name: "application-name", content: "Mochi Weather" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "Mochi" },
-      { title: "Mochi Weather — Extreme Weather Tracker with a Cute Cat" },
-      { name: "description", content: "Live weather, storms, tornadoes, hurricanes, earthquakes, tsunamis & tides for every country — narrated by Mochi the weather cat." },
+      { name: "apple-mobile-web-app-title", content: "Mochi Weather" },
+      { title: SITE_TITLE },
+      { name: "description", content: SITE_DESCRIPTION },
+      { name: "keywords", content: "weather app, weather forecast, live weather, storms, hurricanes, tornadoes, earthquakes, tsunamis, tides, moon phase, PWA, cute weather app, Mochi" },
       { name: "author", content: "Mochi Weather" },
-      { property: "og:title", content: "Mochi Weather — Extreme Weather Tracker with a Cute Cat" },
-      { property: "og:description", content: "Live weather, storms, tornadoes, hurricanes, earthquakes, tsunamis & tides for every country — narrated by Mochi the weather cat." },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Mochi Weather" },
+      { property: "og:locale", content: "en_US" },
+      { property: "og:title", content: SITE_TITLE },
+      { property: "og:description", content: SITE_DESCRIPTION },
+      { property: "og:image", content: OG_IMAGE },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      { property: "og:image:alt", content: "Mochi Weather app showing live weather with a cute cat mascot" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Mochi Weather — Extreme Weather Tracker with a Cute Cat" },
-      { name: "twitter:description", content: "Live weather, storms, tornadoes, hurricanes, earthquakes, tsunamis & tides for every country — narrated by Mochi the weather cat." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/39554f64-757c-4766-a650-ad260c2e4953/id-preview-abc0f5c5--e6a07911-bd59-4f7e-aeb0-2a6a027154d6.lovable.app-1779639552532.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/39554f64-757c-4766-a650-ad260c2e4953/id-preview-abc0f5c5--e6a07911-bd59-4f7e-aeb0-2a6a027154d6.lovable.app-1779639552532.png" },
+      { name: "twitter:title", content: SITE_TITLE },
+      { name: "twitter:description", content: SITE_DESCRIPTION },
+      { name: "twitter:image", content: OG_IMAGE },
+      { name: "twitter:image:alt", content: "Mochi Weather app showing live weather with a cute cat mascot" },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -86,6 +122,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/icon.svg" },
+    ],
+    scripts: [
+      { type: "application/ld+json", children: JSON_LD },
     ],
   }),
   shellComponent: RootShell,

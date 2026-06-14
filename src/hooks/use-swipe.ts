@@ -3,25 +3,48 @@ import { useCallback, useRef } from "react";
 export const SECTIONS = ["now", "forecast", "alerts", "mochi"] as const;
 export type Section = (typeof SECTIONS)[number];
 
+/** Walk up the DOM from `target` to `container`.
+ *  Returns true if any ancestor is horizontally scrollable with overflow content,
+ *  or carries a `data-no-swipe` attribute. */
+function startsInScrollableOrBlocked(target: EventTarget | null, container: Element): boolean {
+  let el = target as Element | null;
+  while (el && el !== container) {
+    if (el.getAttribute?.("data-no-swipe") != null) return true;
+    const style = window.getComputedStyle(el);
+    const ox = style.overflowX;
+    if ((ox === "auto" || ox === "scroll") && el.scrollWidth > el.clientWidth) return true;
+    el = el.parentElement;
+  }
+  return false;
+}
+
 /**
  * Returns touch handlers that detect a horizontal swipe and advance the
- * active section left/right. Vertical scrolling is ignored.
+ * active section left/right.
+ *
+ * Ignored when:
+ * - the gesture is more vertical than horizontal (user scrolling)
+ * - the touch starts inside a horizontally-scrollable child element
+ * - the touch starts on an element (or ancestor) with `data-no-swipe`
  */
 export function useSwipe(
   current: Section,
   set: (s: Section) => void,
-  threshold = 65,
+  threshold = 72,
 ) {
   const startX = useRef(0);
   const startY = useRef(0);
+  const blocked = useRef(false);
 
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     startX.current = e.touches[0].clientX;
     startY.current = e.touches[0].clientY;
+    blocked.current = startsInScrollableOrBlocked(e.target, e.currentTarget);
   }, []);
 
   const onTouchEnd = useCallback(
     (e: React.TouchEvent) => {
+      if (blocked.current) return;
       const dx = e.changedTouches[0].clientX - startX.current;
       const dy = e.changedTouches[0].clientY - startY.current;
       // Ignore if more vertical than horizontal (user scrolling)

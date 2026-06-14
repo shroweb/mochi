@@ -1,13 +1,17 @@
 {
   "name": "Mochi Weather",
   "short_name": "Mochi",
-  "description": "Live weather, storms, earthquakes & tides — narrated by Mochi the weather cat",
+  "description": "Live weather forecasts, storms, earthquakes, tsunamis & tides for every country — narrated by Mochi the weather cat. Free, works offline.",
   "start_url": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
   "background_color": "#edf5fd",
   "theme_color": "#4a9fd4",
-  "categories": ["weather", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["weather", "utilities", "lifestyle"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon.svg",
@@ -20,6 +24,20 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Current Weather",
+      "short_name": "Now",
+      "description": "Check current weather conditions",
+      "url": "/?tab=now"
+    },
+    {
+      "name": "Forecast",
+      "short_name": "Forecast",
+      "description": "View 7-day weather forecast",
+      "url": "/?tab=forecast"
     }
   ]
 }
