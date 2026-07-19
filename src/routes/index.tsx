@@ -23,6 +23,7 @@ import {
 } from "@/lib/weather";
 import { Mascot } from "@/components/Mascot";
 import { FlippableWeatherIcon } from "@/components/FlippableWeatherIcon";
+import { WeatherIcon } from "@/components/WeatherIcon";
 import { MascotCustomizer, useMascotCustomization } from "@/components/MascotCustomizer";
 import { SavedPlaces } from "@/components/SavedPlaces";
 import { HourlyForecastChart } from "@/components/HourlyForecastChart";
@@ -35,11 +36,11 @@ import {
   TidesPanel,
   VolcanoPanel,
 } from "@/components/EnvironmentalPanels";
-import sunnyImg from "@/assets/mascot-sunny.png";
-import rainyImg from "@/assets/mascot-cat.png";
-import stormImg from "@/assets/mascot-storm.png";
-import snowImg from "@/assets/mascot-snow.png";
-import hotImg from "@/assets/mascot-hot.png";
+import sunnyImg from "@/assets/generated/crew-sunny.png";
+import rainyImg from "@/assets/generated/crew-rain.png";
+import stormImg from "@/assets/generated/crew-storm.png";
+import snowImg from "@/assets/generated/crew-snow.png";
+import hotImg from "@/assets/generated/crew-hot.png";
 
 const CAT_IMG: Record<string, string> = {
   sunny: sunnyImg,
@@ -56,7 +57,7 @@ function CatThumb({ mood }: { mood: string }) {
       width={72}
       height={72}
       loading="lazy"
-      className="mx-auto h-16 w-16 object-contain drop-shadow"
+      className="mx-auto h-20 w-20 object-contain drop-shadow"
     />
   );
 }
@@ -307,12 +308,11 @@ function Home() {
       <header className="relative z-[100] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4 animate-fade-up">
         <div className="flex items-center gap-3">
           <img
-            src="/icon.svg"
-            alt="Mochi"
-            className="h-12 w-12 rounded-2xl shadow-soft shrink-0 object-cover"
+            src="/logo-full.png"
+            alt="Mochi Weather"
+            className="h-20 w-auto shrink-0 object-contain sm:h-24"
           />
           <div>
-            <h1 className={`text-2xl font-semibold font-brand leading-none tracking-wide ${!isDay ? 'text-white' : ''}`}>Mochi Weather</h1>
             <p className={`text-xs flex items-center gap-1.5 mt-0.5 ${!isDay ? 'text-white/60' : 'text-muted-foreground'}`}>
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75 animate-ping" />
@@ -526,7 +526,13 @@ function Home() {
                           <div className="w-9 text-sm font-semibold text-muted-foreground">
                             {new Date(d).toLocaleDateString("en", { weekday: "short" })}
                           </div>
-                          <div className="text-2xl w-8">{info.emoji}</div>
+                          <div className="flex w-8 justify-center">
+                            <WeatherIcon
+                              code={weatherQ.data!.daily.weather_code[i]}
+                              size={32}
+                              className="animate-none"
+                            />
+                          </div>
                           <div className="flex-1 text-sm">
                             <span className="font-bold">{Math.round(weatherQ.data!.daily.temperature_2m_max[i])}°</span>
                             <span className="text-muted-foreground"> / {Math.round(weatherQ.data!.daily.temperature_2m_min[i])}°</span>
@@ -548,14 +554,17 @@ function Home() {
                 {weatherQ.data && (
                   <div className="flex gap-2 overflow-x-auto -mx-5 px-5 pb-2 scrollbar-none">
                     {weatherQ.data.hourly.time.slice(0, 24).map((t, i) => {
-                      const info = describeCode(weatherQ.data!.hourly.weather_code[i]);
                       const rain = weatherQ.data!.hourly.precipitation_probability[i] ?? 0;
                       return (
                         <div key={t} className={`shrink-0 w-16 text-center rounded-2xl py-3 px-1 ${rain >= 50 ? 'bg-rain/15' : 'bg-secondary/50'}`}>
                           <div className="text-[10px] text-muted-foreground font-medium">
                             {new Date(t).toLocaleTimeString("en", { hour: "numeric" })}
                           </div>
-                          <div className="text-xl my-1">{info.emoji}</div>
+                          <WeatherIcon
+                            code={weatherQ.data!.hourly.weather_code[i]}
+                            size={28}
+                            className="mx-auto my-1 animate-none"
+                          />
                           <div className="text-sm font-bold">{Math.round(weatherQ.data!.hourly.temperature_2m[i])}°</div>
                           <div className="text-[10px] text-rain font-medium">{rain}%</div>
                         </div>
@@ -575,13 +584,16 @@ function Home() {
             {weatherQ.isError && <p className="rounded-2xl bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">Forecast could not be loaded.</p>}
             <div className="flex gap-2 overflow-x-auto pb-2">
               {weatherQ.data?.daily.time.map((d, i) => {
-                const info = describeCode(weatherQ.data!.daily.weather_code[i]);
                 return (
                   <div key={d} className="shrink-0 w-[4.5rem] text-center rounded-2xl p-2 hover:bg-secondary/60 transition-colors">
                     <div className="text-[10px] font-semibold text-muted-foreground uppercase">
                       {new Date(d).toLocaleDateString("en", { weekday: "short" })}
                     </div>
-                    <div className="text-2xl my-1">{info.emoji}</div>
+                    <WeatherIcon
+                      code={weatherQ.data!.daily.weather_code[i]}
+                      size={34}
+                      className="mx-auto my-1 animate-none"
+                    />
                     <div className="text-sm font-bold">{Math.round(weatherQ.data!.daily.temperature_2m_max[i])}°</div>
                     <div className="text-xs text-muted-foreground">{Math.round(weatherQ.data!.daily.temperature_2m_min[i])}°</div>
                     <div className="text-[10px] mt-1 text-rain font-medium">💧{weatherQ.data!.daily.precipitation_probability_max[i] ?? 0}%</div>
@@ -903,7 +915,78 @@ interface AdviceItem {
   tone: "good" | "watch" | "risk";
 }
 
+function AdviceCard({
+  item,
+  greenIndex,
+}: {
+  item: AdviceItem;
+  greenIndex: number;
+}) {
+  const [coords, setCoords] = useState({ x: 0, y: 0 });
+  const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    setCoords({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  const tone = item.tone;
+  let bgStyles = "";
+  let glowColor = "";
+
+  if (tone === "risk") {
+    bgStyles = "bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-950/20 dark:to-rose-950/30 text-red-700 dark:text-red-300 border border-red-200/50 dark:border-red-900/30 shadow-sm";
+    glowColor = "rgba(239, 68, 68, 0.25)";
+  } else if (tone === "watch") {
+    bgStyles = "bg-gradient-to-br from-amber-50 to-yellow-100 dark:from-amber-950/20 dark:to-yellow-950/30 text-amber-700 dark:text-yellow-300 border border-amber-200/50 dark:border-amber-900/30 shadow-sm";
+    glowColor = "rgba(245, 158, 11, 0.25)";
+  } else {
+    // Green (Good) - we want the 4 green ones to be part of a gradient
+    if (greenIndex === 0) {
+      bgStyles = "bg-gradient-to-br from-[#ecfdf5] to-[#d1fae5] dark:from-emerald-950/20 dark:to-emerald-900/30 text-emerald-800 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 shadow-sm";
+    } else if (greenIndex === 1) {
+      bgStyles = "bg-gradient-to-br from-[#d1fae5] to-[#ccfbf1] dark:from-emerald-900/30 dark:to-teal-950/20 text-emerald-800 dark:text-emerald-300 border border-emerald-200/50 dark:border-teal-800/30 shadow-sm";
+    } else if (greenIndex === 2) {
+      bgStyles = "bg-gradient-to-br from-[#ccfbf1] to-[#e0f2fe] dark:from-teal-950/20 dark:to-teal-900/30 text-emerald-800 dark:text-emerald-300 border border-teal-200/50 dark:border-teal-800/30 shadow-sm";
+    } else if (greenIndex === 3) {
+      bgStyles = "bg-gradient-to-br from-[#e0f2fe] to-[#f0fdf4] dark:from-teal-900/30 dark:to-emerald-950/20 text-emerald-800 dark:text-emerald-300 border border-sky-200/50 dark:border-emerald-800/30 shadow-sm";
+    } else {
+      bgStyles = "bg-gradient-to-br from-emerald-50 to-green-100 dark:from-emerald-950/20 dark:to-green-950/30 text-emerald-800 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/30 shadow-sm";
+    }
+    glowColor = "rgba(16, 185, 129, 0.25)";
+  }
+
+  return (
+    <div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`relative overflow-hidden rounded-2xl px-3.5 py-3 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-md cursor-default ${bgStyles}`}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 transition-opacity duration-300"
+        style={{
+          opacity: isHovered ? 1 : 0,
+          background: `radial-gradient(120px circle at ${coords.x}px ${coords.y}px, ${glowColor}, transparent)`,
+        }}
+      />
+      <div className="relative z-10">
+        <div className="text-[10px] font-bold uppercase tracking-wider opacity-75">{item.label}</div>
+        <div className="text-sm font-bold mt-0.5">{item.value}</div>
+      </div>
+    </div>
+  );
+}
+
 function AdviceStrip({ items, updatedAt }: { items: AdviceItem[]; updatedAt: number }) {
+  const greenCards = items.filter((item) => item.tone === "good");
+
   return (
     <section className="mt-4 rounded-3xl bg-gradient-card p-4 shadow-soft border border-white/60 animate-fade-up">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -911,12 +994,16 @@ function AdviceStrip({ items, updatedAt }: { items: AdviceItem[]; updatedAt: num
         <span className="text-xs text-muted-foreground">Updated {formatUpdated(updatedAt)}</span>
       </div>
       <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
-        {items.map((item) => (
-          <div key={item.label} className={`rounded-2xl px-3 py-2 ${adviceToneClass(item.tone)}`}>
-            <div className="text-[10px] font-bold uppercase opacity-70">{item.label}</div>
-            <div className="text-sm font-bold">{item.value}</div>
-          </div>
-        ))}
+        {items.map((item) => {
+          const greenIndex = item.tone === "good" ? greenCards.indexOf(item) : -1;
+          return (
+            <AdviceCard
+              key={item.label}
+              item={item}
+              greenIndex={greenIndex}
+            />
+          );
+        })}
       </div>
     </section>
   );

@@ -1,20 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import rainy from "@/assets/mascot-cat.png";
-import sunny from "@/assets/mascot-sunny.png";
-import storm from "@/assets/mascot-storm.png";
-import snow from "@/assets/mascot-snow.png";
-import hot from "@/assets/mascot-hot.png";
+import catFace from "@/assets/generated/logo-cat.png";
 
 export type MascotMood = "calm" | "sunny" | "rain" | "storm" | "snow" | "hot";
 export type FurColor = "classic" | "ginger" | "calico" | "midnight" | "mint" | "lavender" | "rose";
 
 const MAP: Record<MascotMood, string> = {
-  calm: sunny,
-  sunny: sunny,
-  rain: rainy,
-  storm: storm,
-  snow: snow,
-  hot: hot,
+  calm: catFace,
+  sunny: catFace,
+  rain: catFace,
+  storm: catFace,
+  snow: catFace,
+  hot: catFace,
 };
 
 export const FUR_PRESETS: Record<FurColor, { label: string; swatch: string; filter: string }> = {
